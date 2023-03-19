@@ -28,7 +28,7 @@ while ((loop_count < num_loops) and (status != "Abnormal")):
     status = check_device_status()
     loop_result = {"Loop": loop_count, "Status": status}
     loop_results.append(loop_result)
-    print(f">>> Loop {loop_count}: {status}")
+    print(f" Loop {loop_count}: {status}")
     
     if status == "Normal":
         #print(">>> Pass")

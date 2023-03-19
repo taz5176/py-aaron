@@ -1,10 +1,11 @@
-import random, sys
+import random, datetime
+import time
 
-
-class Device():
+class Device_Result():
     
-    def __init__(self, loop, result):
+    def __init__(self, dt, loop, result):
         self.result = {
+            'dt': dt,
             'loop': loop,
             'status': None,
             'retry': 0,
@@ -13,12 +14,16 @@ class Device():
         
         
     def update(self, status, retry, result):
+        # self.update_dt(dt)
         self.update_status(status)
         self.update_retry(retry)
         self.update_result(result)
-        # print(self.result)
         
+
+    def update_dt(self, dt):
+        self.result['dt'] = dt
         
+
     def update_loop(self, loop):
         self.result['loop'] = loop
         
@@ -35,7 +40,7 @@ class Device():
         self.result['result'] = result
 
 
-class Testing(Device):
+class Testing(Device_Result):
     
     STATUS = {
         'NORMAL': 'Normal',
@@ -51,29 +56,38 @@ class Testing(Device):
     
     def __init__(self,
                  retries=3):
-        # super.__init__(self)
-        self.retries = retries
-        self.summary = []
+        self.test_retries = retries
+        self.all_results = []
         
         
     def update_result(self, device):
-        self.summary.append(device)
-        
+        self.all_results.append(device)
+
+
+    def print_summary(self):
+        for i in self.all_results:
+            print(i)
+            
     
     def run(self, loops=10):
-
+        print('>>> Beginning Check Device Status')
         for loop in range(loops):
-            # device = Device(loop, Testing.RESULT['NOT_RUN'])
+            print(f' Loop {loop+1}:', end=' ')
 
-            for retry in range(self.retries+1):
-                device = Device(loop, Testing.RESULT['NOT_RUN'])
+            for retry in range(self.test_retries+1):
+                device = Device_Result(Testing.get_dt(), 
+                                loop+1,
+                                Testing.RESULT['NOT_RUN'])
+                
                 # simulate run test to get status
                 status = get_device_status()
+                print(f'{status}')
                 
                 if status == Testing.STATUS['NORMAL']:
                     result = Testing.RESULT['PASS']
                     device.update(status, retry, result)
                     self.update_result(device)
+                    # print(f'{status}')
                     break
                 
                 elif status == Testing.STATUS['ABNORMAL']:
@@ -82,30 +96,41 @@ class Testing(Device):
                     self.update_result(device)
                     break
                 
-                elif status == Testing.STATUS['NO_DISK'] and retry < self.retries+1:
+                elif status == Testing.STATUS['NO_DISK']:
                     result = Testing.RESULT['FAIL']
                     device.update(status, retry, result)
                     self.update_result(device)
-                    
-            # self.update_result(device)
+                    if retry == 0:
+                        print('>>>> No Disk Found, Beginning Retry')
+                    if retry < self.test_retries:
+                        print(f'>>>> Retry Count {retry+1}:', end=' --- ')
+                
             if status == Testing.STATUS['ABNORMAL']:
                 break
+            # if retry > 3:
+            #     device.update(status, retry, result)
+            #     self.update_result(device)
             
+    @staticmethod
+    def get_dt():
+        dt_now = datetime.datetime.now()
+        return datetime.datetime.strftime(dt_now, '%Y%m%dT%H%M%S') 
          
 
 # Main sequence function
 def get_device_status():
     
     # Simulate device status
-    status = random.choice(["Normal", "Abnormal", "No Disk", "No Disk", "No Disk"])
-    # time.sleep(1)  # Simulate processing time
+    status = random.choice(["Normal", "No Disk", "No Disk", "No Disk"])
+    time.sleep(1)  # Simulate processing time
     return status
 
 
 def main():
     test = Testing()
     test.run(loops=10)
-    for i in test.summary:
+
+    for i in test.all_results:
         print(i.result)
     
 
