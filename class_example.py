@@ -1,7 +1,7 @@
 import random, datetime
 import time
 
-class Device_Result():
+class Device():
     
     def __init__(self, dt, loop, result):
         self.result = {
@@ -14,33 +14,33 @@ class Device_Result():
         
         
     def update(self, status, retry, result):
-        # self.update_dt(dt)
-        self.update_status(status)
-        self.update_retry(retry)
-        self.update_result(result)
+        # self.update_device_dt(dt)
+        self.update_device_status(status)
+        self.update_device_retry(retry)
+        self.update_device_result(result)
         
 
-    def update_dt(self, dt):
+    def update_device_dt(self, dt):
         self.result['dt'] = dt
         
 
-    def update_loop(self, loop):
+    def update_device_loop(self, loop):
         self.result['loop'] = loop
         
         
-    def update_status(self, status):
+    def update_device_status(self, status):
         self.result['status'] = status
         
         
-    def update_retry(self, retry):
+    def update_device_retry(self, retry):
         self.result['retry'] = retry
         
         
-    def update_result(self, result):
+    def update_device_result(self, result):
         self.result['result'] = result
 
 
-class Testing(Device_Result):
+class Testing(Device):
     
     STATUS = {
         'NORMAL': 'Normal',
@@ -60,13 +60,13 @@ class Testing(Device_Result):
         self.all_results = []
         
         
-    def update_result(self, device):
+    def update_test_result(self, device):
         self.all_results.append(device)
 
 
-    def print_summary(self):
+    def print_all_results(self):
         for i in self.all_results:
-            print(i)
+            print(i.result)
             
     
     def run(self, loops=10):
@@ -75,7 +75,7 @@ class Testing(Device_Result):
             print(f' Loop {loop+1}:', end=' ')
 
             for retry in range(self.test_retries+1):
-                device = Device_Result(Testing.get_dt(), 
+                device = Device(Testing.get_dt(), 
                                 loop+1,
                                 Testing.RESULT['NOT_RUN'])
                 
@@ -86,20 +86,19 @@ class Testing(Device_Result):
                 if status == Testing.STATUS['NORMAL']:
                     result = Testing.RESULT['PASS']
                     device.update(status, retry, result)
-                    self.update_result(device)
-                    # print(f'{status}')
+                    self.update_test_result(device)
                     break
                 
                 elif status == Testing.STATUS['ABNORMAL']:
                     result = Testing.RESULT['FAIL']
                     device.update(status, retry, result)
-                    self.update_result(device)
+                    self.update_test_result(device)
                     break
                 
                 elif status == Testing.STATUS['NO_DISK']:
                     result = Testing.RESULT['FAIL']
                     device.update(status, retry, result)
-                    self.update_result(device)
+                    self.update_test_result(device)
                     if retry == 0:
                         print('>>>> No Disk Found, Beginning Retry')
                     if retry < self.test_retries:
@@ -107,9 +106,6 @@ class Testing(Device_Result):
                 
             if status == Testing.STATUS['ABNORMAL']:
                 break
-            # if retry > 3:
-            #     device.update(status, retry, result)
-            #     self.update_result(device)
             
     @staticmethod
     def get_dt():
@@ -121,8 +117,12 @@ class Testing(Device_Result):
 def get_device_status():
     
     # Simulate device status
-    status = random.choice(["Normal", "No Disk", "No Disk", "No Disk"])
-    time.sleep(1)  # Simulate processing time
+    status = random.choice(["Normal", 
+                            "Abnormal", 
+                            "No Disk", 
+                            "No Disk", 
+                            "No Disk"])
+    # time.sleep(1)  # Simulate processing time
     return status
 
 
@@ -130,8 +130,7 @@ def main():
     test = Testing()
     test.run(loops=10)
 
-    for i in test.all_results:
-        print(i.result)
+    # test.print_all_results()
     
 
 if __name__ == '__main__':
