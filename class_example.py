@@ -170,6 +170,9 @@ class Testing(Device):
 
 
     def get_summary_table(self):
+        """
+        Method to calculate summary table
+        """
         for n, i in enumerate(self.all_results):
             if i.result['retry'] == 0:
                 each_loop = {'Loop':i.result['loop']}
@@ -182,6 +185,9 @@ class Testing(Device):
 
 
     def print_summary_table(self):
+        """
+        Method to print summary table
+        """
         self.get_summary_table()
         
         print('\nSummary table:')
@@ -189,7 +195,7 @@ class Testing(Device):
         for i in self.summary_table:
             for k, v in i.items():
                 if k == 'Loop':
-                    print(f' {v:>4}', end='')
+                    print(f' {v+1:>4}', end='')
                 elif k == 'Status':
                     print(f' {v:>9}', end='')
                 elif k == 'Result':
@@ -205,7 +211,7 @@ class Testing(Device):
         Args:
             loops (int, optional): number of loops. Defaults to 10.
         """
-        print('>>> Beginning Check Device Status')
+        print('\n>>> Beginning Check Device Status')
         for loop in range(loops):
             print(f' Loop {loop+1}:', end=' ')
 
@@ -259,6 +265,7 @@ def get_device_status():
     
     # Simulate device status
     status = random.choice(["Normal", 
+                            "Abnormal",
                             "No Device", 
                             "No Device", 
                             "No Device"])
@@ -272,7 +279,6 @@ def main():
     """
     test = Testing()
     test.run(loops=10)
-    # test.print_all_results()
     test.print_status_summary()
     test.print_summary_table()
 
