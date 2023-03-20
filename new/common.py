@@ -1,4 +1,4 @@
-import datetime
+import datetime, os
 
 
 class Common:
@@ -15,17 +15,11 @@ class Common:
         """
         dt = datetime.datetime.now()
         return datetime.datetime.strftime(dt, '%Y%m%dT%H%M%S')
-    
 
-    def save_file(filename, data):
-        with open(filename, 'w') as wf:
-            for k in data[0].result.keys():
-                wf.write(k, end=',')
-            wf.write('\n')
-            for i in data:
-                for v in i.result.values():
-                    wf.write(v, end=',')
-                wf.write('\n')
+
+    def file_exist(filename):
+        filepath = os.path.join(os.getcwd(), filename)
+        return os.path.exists(filepath)
 
 
 if __name__ == '__main__':

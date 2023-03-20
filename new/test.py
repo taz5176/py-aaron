@@ -17,7 +17,9 @@ class Test(Device):
     def __init__(
             self,
             test_loops,
-            max_retries
+            max_retries,
+            log,
+            raw_data_file='raw_data.csv'
     ):
         """
         Method to initialise Device class
@@ -25,10 +27,15 @@ class Test(Device):
         Args:
             test_loops (int): Number of tests to run
             max_retries (int): Max. no. of retries
+            log (obj): logging obj
+            raw_data (str, optional): raw data filename. 
+                Defaults to 'raw_data.csv'.
         """
         self.test_loops = test_loops
         self.max_retries = max_retries
         self.all_results = []
+        self.log = log
+        self.raw_data_file = raw_data_file
 
 
     def update(self, device, status, retry, test_result):
@@ -50,19 +57,19 @@ class Test(Device):
         self.all_results.append(device)
 
     
-    def run(self, log):
+    def run(self):
         """
         Method to run tests, display and save results
 
         Args:
             log (obj): Logger instance
         """
-        log.info('Check Device Status Test... Starting')
-        log.info(f'> Test loops: {self.test_loops}, Max retries: {self.max_retries}')
+        self.log.info('Check Device Status Test... Starting')
+        self.log.info(f'> Test loops: {self.test_loops}, Max retries: {self.max_retries}')
         
         status_gen = Status_Generator()
         for loop in range(self.test_loops):
-            log.info(f'****** LOOP {loop+1}: Starting')
+            self.log.info(f'****** LOOP {loop+1}: Starting')
             
             for retry in range(self.max_retries+1):
                 device = Device(
@@ -71,7 +78,7 @@ class Test(Device):
                     RESULT['NOT_RUN']
                 )
                 status = status_gen.check_status()
-                log.info(f'* Status: {status}')
+                self.log.info(f'* Status: {status}')
                 if status == STATUS['ABNORMAL']:
                     result = RESULT['FAIL']
                     self.update(
@@ -80,7 +87,7 @@ class Test(Device):
                         retry,
                         result
                     )
-                    log.debug(f'{device.result}')
+                    self.log.debug(f'{device.result}')
                     break
 
                 elif status == STATUS['NORMAL']:
@@ -91,7 +98,7 @@ class Test(Device):
                         retry,
                         result
                     )
-                    log.debug(f'{device.result}')
+                    self.log.debug(f'{device.result}')
                     break
 
                 elif status == STATUS['NO_DEVICE']:
@@ -102,29 +109,50 @@ class Test(Device):
                         retry,
                         result
                     )
-                    log.debug(f'{device.result}')
+                    self.log.debug(f'{device.result}')
                     if retry < self.max_retries:
-                        log.info(f'>>> Retry {retry+1}')
+                        self.log.info(f'>>> Retry {retry+1}')
             
-            log.info(f'****** LOOP {loop+1}: {result}')
+            self.log.info(f'****** LOOP {loop+1}: {"Retry" if retry > 0 else ""} {result}')
 
             # to exit testing
             if status == STATUS['ABNORMAL']:
                 break
         
-        log.info('Check Device Status Test... Complete')
-    
+        self.log.info('Check Device Status Test... Complete')
+        self.save_file()
+
         # for i in self.all_results:
         #     print(i.result)
 
-        # data = self.all_results
-        # for k in data[0].result.keys():
-        #     print(k, end=',')
-        # print()
-        # for i in data:
-        #     for v in i.result.values():
-        #         print(v, end=',')
-        #     print()
+
+    def save_file(self):
+        """
+        Method to save test data to file
+        """
+        # check if file exist
+        file_exist = Common.file_exist(self.raw_data_file)
+        if file_exist:
+            wr_mode = 'a'
+        else:
+            wr_mode = 'w'
+        
+        with open(self.raw_data_file, wr_mode) as wf:
+            # file not exist, to write header first
+            if not file_exist:
+                for k in self.all_results[0].result.keys():
+                    wf.write(k)
+                    if k != list(self.all_results[0].result.keys())[-1]:
+                        wf.write(',')
+                wf.write('\n')
+            # to write current test result raw self.all_results to file
+            for i in self.all_results:
+                for v in i.result.values():
+                    wf.write(str(v))
+                    if v != list(i.result.values())[-1]:
+                        wf.write(',')
+                wf.write('\n')
+            self.log.info(f'Write raw data to {self.raw_data_file}')
 
 
 def main():
@@ -135,14 +163,15 @@ def main():
     #     loglevel=LOGLEVEL['INFO']
     # ).log
     log = Logger(
-        logfile_name=f'{Common.get_datetime_str()}.log',
+        logfile_name='test.log',
         loglevel=LOGLEVEL['INFO']
     ).log
     test = Test(
         test_loops=10,
-        max_retries=3
+        max_retries=3,
+        log=log
     )
-    test.run(log)
+    test.run()
 
 
 if __name__ == '__main__':
