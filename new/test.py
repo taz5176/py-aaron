@@ -38,8 +38,14 @@ class Test(Device):
         self.max_retries = max_retries
         self.all_results = []
         self.log = log
-        self.raw_folder = folder
-        self.raw_file = file
+        self.folder = folder
+        self.file = file
+        # initialise status summary to 0
+        self.status_summary = {
+            STATUS['ABNORMAL']: 0,
+            STATUS['NORMAL']: 0,
+            STATUS['NO_DEVICE']: 0
+        }
 
 
     def update(self, device, status, retry, test_result):
@@ -59,6 +65,48 @@ class Test(Device):
             test_result
         )
         self.all_results.append(device)
+
+
+    def save_file(self):
+        """
+        Method to save test data to file
+        """
+        # check if file exist
+        file_exist = Common.path_exist(self.folder, self.file)
+        if file_exist:
+            wr_mode = 'a'
+        else:
+            wr_mode = 'w'
+        
+        # get file full path
+        file_path = Common.get_new_filepath(folder=self.folder, 
+                                            file=self.file)
+        with open(file_path, wr_mode) as wf:
+            # if file doesn't exist, to write header first
+            if not file_exist:
+                for k in self.all_results[0].result.keys():
+                    wf.write(k)
+                    if k != list(self.all_results[0].result.keys())[-1]:
+                        wf.write(',')
+                wf.write('\n')
+            # write current test result data to file
+            for i in self.all_results:
+                for v in i.result.values():
+                    wf.write(str(v))
+                    if v != list(i.result.values())[-1]:
+                        wf.write(',')
+                wf.write('\n')
+            self.log.info(f'Write raw data to {self.file}')
+
+
+    def print_status_summary(self):
+        """
+        Method to display status summary
+        """
+        for i in self.all_results:
+            if i.result['retry'] == 0:
+                self.status_summary[i.result['status']] += 1
+        self.log.info(f'Status summary: {self.status_summary}')
 
     
     def run(self):
@@ -125,38 +173,7 @@ class Test(Device):
         
         self.log.info('Check Device Status Test... Complete')
         self.save_file()
-
-
-    def save_file(self):
-        """
-        Method to save test data to file
-        """
-        # check if file exist
-        file_exist = Common.path_exist(self.raw_folder, self.raw_file)
-        if file_exist:
-            wr_mode = 'a'
-        else:
-            wr_mode = 'w'
-        
-        # get file full path
-        file_path = Common.get_new_filepath(folder=self.raw_folder, 
-                                            file=self.raw_file)
-        with open(file_path, wr_mode) as wf:
-            # if file doesn't exist, to write header first
-            if not file_exist:
-                for k in self.all_results[0].result.keys():
-                    wf.write(k)
-                    if k != list(self.all_results[0].result.keys())[-1]:
-                        wf.write(',')
-                wf.write('\n')
-            # write current test result data to file
-            for i in self.all_results:
-                for v in i.result.values():
-                    wf.write(str(v))
-                    if v != list(i.result.values())[-1]:
-                        wf.write(',')
-                wf.write('\n')
-            self.log.info(f'Write raw data to {self.raw_file}')
+        self.print_status_summary()
 
 
 def main():
