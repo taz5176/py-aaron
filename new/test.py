@@ -1,3 +1,6 @@
+
+import json
+
 from device import Device
 from common import Common
 from logger import Logger
@@ -46,6 +49,8 @@ class Test(Device):
             STATUS['NORMAL']: 0,
             STATUS['NO_DEVICE']: 0
         }
+        # initialise summary table to empty list
+        self.summary_table = []
 
 
     def update(self, device, status, retry, test_result):
@@ -67,7 +72,7 @@ class Test(Device):
         self.all_results.append(device)
 
 
-    def save_file(self):
+    def save_data(self):
         """
         Method to save test data to file
         """
@@ -99,14 +104,31 @@ class Test(Device):
             self.log.info(f'Write raw data to {self.file}')
 
 
-    def print_status_summary(self):
+    def get_status_summary(self):
         """
         Method to display status summary
         """
         for i in self.all_results:
             if i.result['retry'] == 0:
                 self.status_summary[i.result['status']] += 1
-        self.log.info(f'Status summary: {self.status_summary}')
+        self.log.info(
+            f'\nStatus summary: {json.dumps(self.status_summary, indent=2)}'
+        )
+
+
+    def get_summary_table(self):
+        """
+        Method to display summary table
+        """
+        for n, i in enumerate(self.all_results):
+            if i.result['retry'] == 0:
+                each_loop = {'Loop':i.result['loop']}
+                each_loop.update({'Status':i.result['status']})
+                self.summary_table.append(each_loop)
+            
+            result = f'{"Retry " if i.result["retry"] > 0 else ""}{i.result["test_result"]}'
+            self.summary_table[i.result['loop']-1].update({'Result':result})
+        self.log.info(f'\nSummary table: {json.dumps(self.summary_table, indent=2)}')
 
     
     def run(self):
@@ -172,8 +194,9 @@ class Test(Device):
                 break
         
         self.log.info('Check Device Status Test... Complete')
-        self.save_file()
-        self.print_status_summary()
+        self.save_data()
+        self.get_status_summary()
+        self.get_summary_table()
 
 
 def main():
