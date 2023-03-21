@@ -101,7 +101,7 @@ class Test(Device):
                     if v != list(i.result.values())[-1]:
                         wf.write(',')
                 wf.write('\n')
-            self.log.info(f'Write raw data to {self.file}')
+            self.log.debug(f'Write data to {self.file}')
 
 
     def get_status_summary(self):
@@ -112,7 +112,7 @@ class Test(Device):
             if i.result['retry'] == 0:
                 self.status_summary[i.result['status']] += 1
         self.log.info(
-            f'\nStatus summary: {json.dumps(self.status_summary, indent=2)}'
+            f'\nStatus summary: {json.dumps(self.status_summary, indent=2)}\n'
         )
 
 
@@ -128,7 +128,7 @@ class Test(Device):
             
             result = f'{"Retry " if i.result["retry"] > 0 else ""}{i.result["test_result"]}'
             self.summary_table[i.result['loop']-1].update({'Result':result})
-        self.log.info(f'\nSummary table: {json.dumps(self.summary_table, indent=2)}')
+        self.log.info(f'\nSummary table: {json.dumps(self.summary_table, indent=2)}\n')
 
     
     def run(self):
@@ -143,7 +143,7 @@ class Test(Device):
         
         status_gen = Status_Generator()
         for loop in range(self.test_loops):
-            self.log.info(f'****** LOOP {loop+1}: Starting')
+            self.log.info(f'>>> LOOP {loop+1}: Starting')
             
             for retry in range(self.max_retries+1):
                 device = Device(
@@ -152,7 +152,10 @@ class Test(Device):
                     RESULT['NOT_RUN']
                 )
                 status = status_gen.check_status()
-                self.log.info(f'* Status: {status}')
+                if retry == 0:
+                    self.log.info(f'Status: {status}')
+                else:
+                    self.log.debug(f'Status: {status}')
                 if status == STATUS['ABNORMAL']:
                     result = RESULT['FAIL']
                     self.update(
@@ -185,9 +188,9 @@ class Test(Device):
                     )
                     self.log.debug(f'{device.result}')
                     if retry < self.max_retries:
-                        self.log.info(f'>>> Retry {retry+1}')
+                        self.log.debug(f'>>>> Retry {retry+1}')
             
-            self.log.info(f'****** LOOP {loop+1}: {"Retry" if retry > 0 else ""} {result}')
+            self.log.info(f'>>> LOOP {loop+1}: {"Retry " if retry > 0 else ""}{result}')
 
             # to exit testing
             if status == STATUS['ABNORMAL']:
@@ -203,13 +206,13 @@ def main():
     """
     Main method to execute
     """
-    # log = Logger(
-    #     loglevel=LOGLEVEL['DEBUG']
-    # ).log
     log = Logger(
-        logfile_name='test.log',
-        loglevel=LOGLEVEL['INFO']
+        loglevel=LOGLEVEL['DEBUG']
     ).log
+    # log = Logger(
+    #     logfile_name='test.log',
+    #     loglevel=LOGLEVEL['INFO']
+    # ).log
     test = Test(
         test_loops=10,
         max_retries=3,
