@@ -28,7 +28,7 @@ class Status_Generator:
         #   0 = not possible
         # weights=('Abnormal', 'Normal', 'No Device')
         self.status = random.choices(status, weights=(1, 3, 6))[0]
-        # time.sleep(1)
+        time.sleep(1)
         return self.status
 
 

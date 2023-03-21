@@ -43,6 +43,8 @@ class Logger:
         log = logging.getLogger()
         log.setLevel(self.loglevel)
         log.addHandler(console_handler)
+
+        # Will not save log if filename is not specified
         if self.logfile_name is not None:
             file_handler = logging.FileHandler(f'{self.logfile_name}')
             file_handler.setFormatter(log_formatter)

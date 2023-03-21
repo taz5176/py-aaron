@@ -1,0 +1,7 @@
+dt,loop,status,retry,test_result
+20230321T172914,1,Normal,0,Pass
+20230321T172915,2,No Device,0,Fail
+20230321T172916,2,No Device,1,Fail
+20230321T172917,2,No Device,2,Fail
+20230321T172918,2,No Device,3,Fail
+20230321T172919,3,Abnormal,0,Fail
