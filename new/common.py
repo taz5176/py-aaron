@@ -1,4 +1,6 @@
-import datetime, os
+import datetime
+
+from pathlib import Path
 
 
 class Common:
@@ -6,7 +8,7 @@ class Common:
     Class for commonly used functions
     - get datetime string 
     """
-    def get_datetime_str():
+    def get_datetime_str() -> str:
         """
         Method to get current datetime string
 
@@ -15,59 +17,59 @@ class Common:
         """
         dt = datetime.datetime.now()
         return datetime.datetime.strftime(dt, '%Y%m%dT%H%M%S')
+    
 
-
-    def path_exist(folder=None, file=None):
+    def path_exist(fullpath: str) -> bool:
         """
         Method to check if path exist
 
         Args:
-            folder (str, optional): Folder name. Defaults to None.
-            file (str, optional): File name. Defaults to None.
+            fullpath (str): Full path to be checked
 
         Returns:
-            bool: True if path exist, else false
+            bool: Path exists?
         """
-        if folder is None:
-            folder = ''
-        if file is None:
-            file = ''
-        new_path = os.path.join(os.getcwd(), folder, file)
-        return os.path.exists(new_path)
+        return True if Path(fullpath).exists() else False
+    
 
-
-    def get_new_filepath(folder=None, file=None):
+    def path_join(file: str, folder=None) -> str:
         """
-        Method to get the file or folder full path
+        Method to join path to current working
+        directory
 
         Args:
-            folder (str, optional): Folder name. 
-                Defaults to None.
-            file (str, optional): File name. 
-                Defaults to None.
+            path (str): Folder or file name
 
         Returns:
-            str: File or folder full path
+            str: New path
         """
         if folder is None:
-            folder = ''
-        if file is None:
-            file = ''
-        if not Common.path_exist(folder):
-            os.mkdir(folder)
-        return os.path.join(os.getcwd(), folder, file)
+            p = Path.cwd()
+        else:
+            p = Path(Path.cwd() / folder)
+        return Path(p / file)
 
 
-    def output_path(folder=None, file=None):
-        if folder is None:
-            folder = ''
-        if file is None:
-            file = ''
-        if not os.path.join(os.getcwd(), folder):
-            os.mkdir(folder)
-        return os.path.join(os.getcwd(), folder, file)
+    def create_folder(folder: str) -> str:
+        """
+        Method to create folder
+
+        Args:
+            folder (str): folder to be created
+
+        Returns:
+            str: result message
+        """
+        p = Path(Path.cwd() / folder)
+        if not Common.path_exist(p):
+            Path(Path.cwd() / folder).mkdir()
+        #     return True
+        # return False
 
 
 if __name__ == '__main__':
-    # for testing
-    print(Common.get_datetime_str())
+    # testing
+    # print(Common.get_datetime_str())
+    # print(Common.path_exist(Path.cwd()))
+    print(Common.create_folder('test'))
+    # print(Common.path_join('test'))

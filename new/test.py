@@ -1,9 +1,8 @@
 
-import json, os
+import json
 
 from device import Device
 from common import Common
-# from comm import Common
 from logger import Logger
 from constants import LOGLEVEL, RESULT, STATUS
 from status_generator import Status_Generator
@@ -79,26 +78,20 @@ class Test(Device):
         """
         Method to save test data to file
         """
-        # check if file exist
-        file_exist = Common.path_exist(self.folder, self.output)
-        if file_exist:
-            wr_mode = 'a'
-        else:
-            wr_mode = 'w'
-        
-        # get file full path
-        file_path = Common.get_new_filepath(
-            folder=self.folder, 
-            file=self.output
+        # create full path
+        Common.create_folder(self.folder)
+        fullpath = Common.path_join(
+            file=self.output,
+            folder=self.folder
         )
-        with open(file_path, wr_mode) as wf:
+
+        with open(fullpath, 'w') as wf:
             # if file doesn't exist, to write header first
-            if not file_exist:
-                for k in self.all_results[0].result.keys():
-                    wf.write(k)
-                    if k != list(self.all_results[0].result.keys())[-1]:
-                        wf.write(',')
-                wf.write('\n')
+            for k in self.all_results[0].result.keys():
+                wf.write(k)
+                if k != list(self.all_results[0].result.keys())[-1]:
+                    wf.write(',')
+            wf.write('\n')
             # write current test result data to file
             for i in self.all_results:
                 for v in i.result.values():
@@ -106,13 +99,14 @@ class Test(Device):
                     if v != list(i.result.values())[-1]:
                         wf.write(',')
                 wf.write('\n')
-            self.log.debug(f'Write data to {self.output}')
+            self.log.debug(f'Write data to \'{self.output}\'')
 
 
     def read_data(self, fullpath):
         try:
-            self.log.info(f'Reading {fullpath}')
+            self.log.info(f'Reading \'{fullpath}\'')
             with open(fullpath, 'r') as rf:
+                # skip first line (headers) in file
                 next(rf)
                 lines = rf.readlines()
 
@@ -128,7 +122,6 @@ class Test(Device):
                     )
                     self.log.debug(f'\n{device.result}')
                     self.all_results.append(device)
-            self.log.info('File read and processed successfully')
             return True
 
         except Exception as e:
@@ -164,9 +157,8 @@ class Test(Device):
 
     def process(self):
         self.log.info('Processing data file... Starting')
-        if self.read_data(os.path.join(os.getcwd(), 'raw', '20230321T200118.csv')):
-        # self.read_data(os.path.join(os.getcwd(), 'raw', '20230322T113029.csv'))
-
+        input = Common.path_join(self.input)
+        if self.read_data(input):
             self.get_status_summary()
             self.get_summary_table()
         self.log.info('Processing data file... Complete')
@@ -247,16 +239,17 @@ def main():
     """
     Main method to execute
     """
-    # log = Logger(
-    #     loglevel=LOGLEVEL['DEBUG']
-    # ).log
     log = Logger(
-        loglevel=LOGLEVEL['INFO']
+        loglevel=LOGLEVEL['DEBUG']
     ).log
+    # log = Logger(
+    #     loglevel=LOGLEVEL['INFO']
+    # ).log
     test = Test(
         test_loops=10,
         max_retries=3,
-        log=log
+        log=log,
+        input=Common.path_join('./raw/test1.csv')
     )
     test.run()
     # test.process()
