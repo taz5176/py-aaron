@@ -9,7 +9,7 @@ class Logger:
     """
     def __init__(
             self,
-            logfile_name=None,
+            logfile_name='None',
             loglevel=LOGLEVEL['DEBUG']
     ):
         """
@@ -54,8 +54,10 @@ class Logger:
 
 if __name__ == '__main__':
     # for testing
-    mylogger = Logger(logfile_name='test.log',
-                        loglevel=LOGLEVEL['INFO'])
+    mylogger = Logger(
+        logfile_name='test.log',
+        loglevel=LOGLEVEL['INFO']
+    )
     mylogger.log.debug('debug message')
     mylogger.log.info('info message')
     mylogger.log.warning('warn message')

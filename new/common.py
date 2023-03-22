@@ -58,6 +58,16 @@ class Common:
         return os.path.join(os.getcwd(), folder, file)
 
 
+    def output_path(folder=None, file=None):
+        if folder is None:
+            folder = ''
+        if file is None:
+            file = ''
+        if not os.path.join(os.getcwd(), folder):
+            os.mkdir(folder)
+        return os.path.join(os.getcwd(), folder, file)
+
+
 if __name__ == '__main__':
     # for testing
     print(Common.get_datetime_str())

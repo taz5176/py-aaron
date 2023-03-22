@@ -10,7 +10,9 @@ class Device:
             self,
             dt,
             loop,
-            test_result
+            test_result,
+            status=None,
+            retry=0
     ):
         """
         Method to initialise Device class
@@ -23,8 +25,8 @@ class Device:
         self.result = {
             'dt': dt,
             'loop': loop,
-            'status': None,
-            'retry': 0,
+            'status': status,
+            'retry': retry,
             'test_result': test_result
         }
 
@@ -79,7 +81,14 @@ class Device:
         self.result['test_result'] = test_result
 
 
-    def update_result(self, status, retry, test_result):
+    def update_result(
+            self,
+            status, 
+            retry, 
+            test_result,
+            dt=None,
+            loop=None
+        ):
         """
         Method to update class attribute result by
         updating the below Args class attribute
@@ -89,6 +98,10 @@ class Device:
             retry (int): Test retry count
             test_result (str): Test result (pass/fail)
         """
+        if dt is not None:
+            self.update_dt(dt)
+        if loop is not None:
+            self.update_loop(loop)
         self.update_status(status)
         self.update_retry(retry)
         self.update_test_result(test_result)

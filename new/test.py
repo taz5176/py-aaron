@@ -1,5 +1,5 @@
 
-import json
+import json, os
 
 from device import Device
 from common import Common
@@ -23,7 +23,8 @@ class Test(Device):
             max_retries,
             log,
             folder='raw',
-            file=f'{Common.get_datetime_str()}.csv'
+            input=None,
+            output=f'{Common.get_datetime_str()}.csv'
     ):
         """
         Method to initialise Device class
@@ -42,7 +43,8 @@ class Test(Device):
         self.all_results = []
         self.log = log
         self.folder = folder
-        self.file = file
+        self.input = input
+        self.output = output
         # initialise status summary to 0
         self.status_summary = {
             STATUS['ABNORMAL']: 0,
@@ -77,15 +79,17 @@ class Test(Device):
         Method to save test data to file
         """
         # check if file exist
-        file_exist = Common.path_exist(self.folder, self.file)
+        file_exist = Common.path_exist(self.folder, self.output)
         if file_exist:
             wr_mode = 'a'
         else:
             wr_mode = 'w'
         
         # get file full path
-        file_path = Common.get_new_filepath(folder=self.folder, 
-                                            file=self.file)
+        file_path = Common.get_new_filepath(
+            folder=self.folder, 
+            file=self.output
+        )
         with open(file_path, wr_mode) as wf:
             # if file doesn't exist, to write header first
             if not file_exist:
@@ -101,7 +105,33 @@ class Test(Device):
                     if v != list(i.result.values())[-1]:
                         wf.write(',')
                 wf.write('\n')
-            self.log.debug(f'Write data to {self.file}')
+            self.log.debug(f'Write data to {self.output}')
+
+
+    def read_data(self, fullpath):
+        try:
+            self.log.info(f'Reading {fullpath}')
+            with open(fullpath, 'r') as rf:
+                next(rf)
+                lines = rf.readlines()
+
+                for line in lines:
+                    line = line.strip('\n')
+                    items = line.split(',')
+                    device = Device(
+                        dt=items[0],
+                        loop=int(items[1]),
+                        status=items[2],
+                        retry=int(items[3]),
+                        test_result=items[4]
+                    )
+                    self.log.debug(f'\n{device.result}')
+                    self.all_results.append(device)
+            self.log.info('File read and processed successfully')
+            return True
+
+        except Exception as e:
+            self.log.error(e)
 
 
     def get_status_summary(self):
@@ -112,7 +142,7 @@ class Test(Device):
             if i.result['retry'] == 0:
                 self.status_summary[i.result['status']] += 1
         self.log.info(
-            f'\nStatus summary: {json.dumps(self.status_summary, indent=2)}\n'
+            f'Status summary: \n{json.dumps(self.status_summary, indent=2)}'
         )
 
 
@@ -128,7 +158,17 @@ class Test(Device):
             
             result = f'{"Retry " if i.result["retry"] > 0 else ""}{i.result["test_result"]}'
             self.summary_table[i.result['loop']-1].update({'Result':result})
-        self.log.info(f'\nSummary table: {json.dumps(self.summary_table, indent=2)}\n')
+        self.log.debug(f'Summary table: \n{json.dumps(self.summary_table, indent=2)}')
+
+
+    def process(self):
+        self.log.info('Processing data file... Starting')
+        if self.read_data(os.path.join(os.getcwd(), 'raw', '20230321T200118.csv')):
+        # self.read_data(os.path.join(os.getcwd(), 'raw', '20230322T113029.csv'))
+
+            self.get_status_summary()
+            self.get_summary_table()
+        self.log.info('Processing data file... Complete')
 
     
     def run(self):
@@ -164,7 +204,7 @@ class Test(Device):
                         retry,
                         result
                     )
-                    self.log.debug(f'{device.result}')
+                    self.log.debug(f'\n{device.result}')
                     break
 
                 elif status == STATUS['NORMAL']:
@@ -175,7 +215,7 @@ class Test(Device):
                         retry,
                         result
                     )
-                    self.log.debug(f'{device.result}')
+                    self.log.debug(f'\n{device.result}')
                     break
 
                 elif status == STATUS['NO_DEVICE']:
@@ -186,7 +226,7 @@ class Test(Device):
                         retry,
                         result
                     )
-                    self.log.debug(f'{device.result}')
+                    self.log.debug(f'\n{device.result}')
                     if retry < self.max_retries:
                         self.log.debug(f'>>>> Retry {retry+1}')
             
@@ -218,7 +258,8 @@ def main():
         max_retries=3,
         log=log
     )
-    test.run()
+    # test.run()
+    test.process()
 
 
 if __name__ == '__main__':
