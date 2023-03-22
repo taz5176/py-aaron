@@ -3,6 +3,7 @@ import json, os
 
 from device import Device
 from common import Common
+# from comm import Common
 from logger import Logger
 from constants import LOGLEVEL, RESULT, STATUS
 from status_generator import Status_Generator
@@ -246,20 +247,19 @@ def main():
     """
     Main method to execute
     """
-    log = Logger(
-        loglevel=LOGLEVEL['DEBUG']
-    ).log
     # log = Logger(
-    #     logfile_name='test.log',
-    #     loglevel=LOGLEVEL['INFO']
+    #     loglevel=LOGLEVEL['DEBUG']
     # ).log
+    log = Logger(
+        loglevel=LOGLEVEL['INFO']
+    ).log
     test = Test(
         test_loops=10,
         max_retries=3,
         log=log
     )
-    # test.run()
-    test.process()
+    test.run()
+    # test.process()
 
 
 if __name__ == '__main__':
