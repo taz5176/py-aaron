@@ -9,7 +9,7 @@ class Logger:
     """
     def __init__(
             self,
-            logfile_name='None',
+            logfile_name=None,
             loglevel=LOGLEVEL['DEBUG']
     ):
         """
@@ -26,7 +26,7 @@ class Logger:
                 40  - ERROR
                 50  - CRITICAL
         """
-        self.logfile_name = logfile_name if logfile_name else None
+        self.logfile_name = logfile_name if logfile_name else 'test.log'
         self.loglevel = loglevel 
         self.init_logging()
     
