@@ -1,5 +1,5 @@
 
-import json
+import json, argparse, sys
 
 from device import Device
 from common import Common
@@ -24,7 +24,7 @@ class Test(Device):
             log,
             folder='raw',
             input=None,
-            output=f'{Common.get_datetime_str()}.csv'
+            output=f'{Common.get_datetime_str()}.csv',
     ):
         """
         Method to initialise Device class
@@ -255,5 +255,39 @@ def main():
     # test.process()
 
 
+def parse():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-d', '--debug',
+        help='display more information',
+        action='store_false'
+    )
+    
+    cmds = parser.add_subparsers(dest='commands')
+    run = cmds.add_parser(
+        'run',
+        help='run test'
+    )
+    analyse = cmds.add_parser(
+        'analyse',
+        help='analyse test data file'
+    )
+    analyse.add_argument(
+        '-i',
+        dest='input',
+        help='test data file .csv',
+        type=str
+    )
+
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    args = parser.parse_args()
+    print(args)
+
+    # if args.
+
+
 if __name__ == '__main__':
     main()
+    # parse()
