@@ -155,13 +155,13 @@ class Test(Device):
         self.log.debug(f'Summary table: \n{json.dumps(self.summary_table, indent=2)}')
 
 
-    def process(self):
-        self.log.info('Processing data file... Starting')
+    def analyse(self):
+        self.log.info('Analysing data file... Starting')
         input = Common.path_join(self.input)
         if self.read_data(input):
             self.get_status_summary()
             self.get_summary_table()
-        self.log.info('Processing data file... Complete')
+        self.log.info('Analysing data file... Complete')
 
     
     def run(self):
@@ -239,20 +239,29 @@ def main():
     """
     Main method to execute
     """
+    # create arg parser 
+    args = parse()
+    if args.debug:
+        loglevel = LOGLEVEL['DEBUG']
+    else:
+        loglevel = LOGLEVEL['INFO']
+
+    # create logger instance
     log = Logger(
-        loglevel=LOGLEVEL['DEBUG']
+        loglevel=loglevel
     ).log
-    # log = Logger(
-    #     loglevel=LOGLEVEL['INFO']
-    # ).log
+    
     test = Test(
         test_loops=10,
         max_retries=3,
         log=log,
-        input=Common.path_join('./raw/test1.csv')
+        input=None
     )
-    test.run()
-    # test.process()
+    if args.cmd == 'run':
+        test.run()
+    elif args.cmd == 'analyse':
+        test.input = args.input
+        test.analyse()
 
 
 def parse():
@@ -260,10 +269,10 @@ def parse():
     parser.add_argument(
         '-d', '--debug',
         help='display more information',
-        action='store_false'
+        action='store_true',
     )
     
-    cmds = parser.add_subparsers(dest='commands')
+    cmds = parser.add_subparsers(dest='cmd')
     run = cmds.add_parser(
         'run',
         help='run test'
@@ -279,13 +288,8 @@ def parse():
         type=str
     )
 
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
     args = parser.parse_args()
-    print(args)
-
-    # if args.
+    return args
 
 
 if __name__ == '__main__':

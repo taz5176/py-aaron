@@ -1,7 +1,7 @@
 import argparse, sys
 
 
-class Arg_Parser:
+class Arg_Parser():
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument(
@@ -11,7 +11,11 @@ class Arg_Parser:
             action='store_true'
         )
 
-        cmds = self.parser.add_subparsers(dest='commands')
+        cmds = self.parser.add_subparsers(
+            dest='cmd',
+            title='commands',
+            metavar=''
+        )
         run = cmds.add_parser(
             'run',
             help='run test'
@@ -27,16 +31,17 @@ class Arg_Parser:
             type=str,
             required=True
         )
-        args = self.parser.parse_args()
-        print(args)
+        if len(sys.argv) == 1:
+            self.parser.print_help(sys.stderr)
+            sys.exit(1)
 
-        if args.debug:
-            self.debug = True
-        else:
-            self.debug = False
+
+    def parse_args(self):
+        return self.parser.parse_args()
+
 
 arg_parser = Arg_Parser()
-# print(arg_parser.debug)
+print(arg_parser.parse_args())
 
 def parse():
     parser = argparse.ArgumentParser()
